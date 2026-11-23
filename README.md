@@ -1,62 +1,12 @@
 # Smart Menza
 
-A canteen app for students and canteen staff. Students see the daily menu, the nutrition
-values and reviews of each dish, and their own nutrition goals. Staff manage menus and dishes
-and can check a dish's ingredients with Azure OpenAI.
+![Status: archived](https://img.shields.io/badge/status-archived-6e7781?style=flat-square)
+[![License](https://img.shields.io/github/license/marin-orejas/smart-menza?style=flat-square)](LICENSE)
 
-It was a team project of five students at the Faculty of Organization and Informatics (FOI),
-for the course Software Analysis and Design. The project was also part of Agile Mobile Application
-Development, a Joint Creative Classroom (JCC) run with Span. It added two hours of lectures a
-week and 2 ECTS on top of the course. We worked in Scrum sprints, with user stories and retrospectives. The backend is an
-ASP.NET Core 8 REST API on Azure. The Android and Wear OS apps are in Kotlin.
+Canteen app for students and staff, with an ASP.NET Core REST API on Azure and Android and Wear OS apps in Kotlin.
+It was a team project at the Faculty of Organization and Informatics (FOI), run with Span.
 
-This repository is a copy of the team repository from Azure DevOps. The Azure backend is no
-longer online, so the app needs a local backend to show data.
-
-## My part
-
-I worked on the backend with three other developers, and I built the Wear OS module on my own.
-
-| Area | What I built |
-|---|---|
-| Database | The first tables as EF Core migrations, and applying the migrations when the API starts |
-| Daily menus | Endpoints for today's menu and for a menu by date, then create, update and delete |
-| Dishes | Create, update and delete for dishes, and image upload to Azure Blob Storage |
-| Reviews | Repository, service and endpoints for dish reviews, and the reviews in the dish details |
-| Registration | User registration with validation, which returns a JWT token |
-| Swagger | Swagger UI for the API, with a JWT token field for testing the protected endpoints |
-| Wear OS | The whole `wear` module and the sync on the phone side |
-
-## Wear OS module
-
-The watch shows today's lunch and dinner and never calls the API. The phone sends it the menu
-over the Wearable Data Layer API. A student opens the menu in the phone app and taps
-"Sinkronizacija sa satom" (sync with watch) in the top bar.
-
-| Step | Where | What happens |
-|---|---|---|
-| 1 | phone, `MenuSyncManager` | Writes today's lunch and dinner to the data path `/menu_items` |
-| 2 | watch, `WearDataListenerService` | Receives the data and saves it with `MenuStorage` (SharedPreferences) |
-| 3 | watch, `MenuViewModel` | Reads the saved menu every two seconds, so a new sync appears without reopening the app |
-
-The saved menu stays on the watch after a restart. If there is no menu for the day, the sync
-clears the old one.
-
-## What the app does
-
-| Role | Features |
-|---|---|
-| Student | Daily menu for lunch and dinner, dish details with nutrition values and reviews, favourite dishes, nutrition goals, and a daily food log measured against those goals |
-| Canteen staff | Menus and dishes (create, edit, delete), dish images, AI checks of the ingredients, and the most favourited dishes |
-
-Users log in with email and password or with a Google account. The API returns a JWT token,
-and most endpoints require it.
-
-The AI checks send the ingredient list to Azure OpenAI. One returns the allergens and whether
-the dish is vegan, vegetarian or gluten-free. The other estimates calories, protein,
-carbohydrates, fat, fibre and salt for one serving.
-
-## Architecture
+This repository is a copy of the team repository from Azure DevOps, and the Azure backend is no longer online.
 
 ```mermaid
 flowchart LR
@@ -73,56 +23,113 @@ flowchart LR
     api --> ai
 ```
 
-Backend, `SmartMenza.sln`:
+## Highlights
+
+- A team of 5 built the system in Scrum sprints, with user stories and retrospectives.
+- The backend has 4 .NET projects and a test project with 20 xUnit tests.
+- 2 AI checks use Azure OpenAI to find allergens and to estimate the nutrition values of a dish.
+- The Wear OS app shows today's lunch and dinner without a single call to the API.
+
+## My part
+
+I was 1 of 4 backend developers in a team of 5, and I built the Wear OS module alone.
+
+| Area | What I built |
+|---|---|
+| Database | First tables as EF Core migrations, applied when the API starts |
+| Daily menus | Endpoints for today's menu, a menu by date, and create, update and delete |
+| Dishes | Create, update and delete, image upload to Azure Blob Storage |
+| Reviews | Repository, service and endpoints, reviews in the dish details |
+| Registration | User registration with validation and a JWT token |
+| Swagger | Swagger UI with a JWT token field for the protected endpoints |
+| Wear OS | The whole `wear` module and the sync on the phone side |
+
+## Features
+
+Students and canteen staff see different screens after login.
+The AI checks send the ingredient list of a dish to Azure OpenAI.
+
+| Area | Features |
+|---|---|
+| Menu | Daily menu for lunch and dinner, dish details with nutrition values and reviews |
+| Students | Favourite dishes, nutrition goals, a daily food log measured against the goals |
+| Staff | Menus and dishes (create, edit, delete), dish images, the most favourited dishes |
+| AI checks | Allergens and diet labels (vegan, vegetarian, gluten-free), calories and nutrients for 1 serving |
+| Login | Email and password or a Google account, a JWT token for most endpoints |
+
+## Backend
+
+`SmartMenza.sln` holds the ASP.NET Core 8 API, split into layers.
 
 | Project | Folder | Contents |
 |---|---|---|
-| SmartMenza.API | `SmartMenza/` | Controllers, Swagger and startup |
-| SmartMenza.Business | `SmartMenza.Business/` | Services, request and response models, JWT, Blob Storage and Azure OpenAI clients |
-| SmartMenza.Data | `SmartMenza.Data/` | EF Core context, entities, migrations and repositories |
-| SmartMenza.Core | `SmartMenza.Core/` | Shared enums and settings |
-| SmartMenza.UnitTests | `SmartMenza.UnitTests/` | 20 xUnit tests |
+| SmartMenza.API | [`SmartMenza/`](SmartMenza/) | Controllers, Swagger and startup |
+| SmartMenza.Business | [`SmartMenza.Business/`](SmartMenza.Business/) | Services, JWT, Blob Storage and Azure OpenAI clients |
+| SmartMenza.Data | [`SmartMenza.Data/`](SmartMenza.Data/) | EF Core context, entities, migrations and repositories |
+| SmartMenza.Core | [`SmartMenza.Core/`](SmartMenza.Core/) | Shared enums and settings |
+| SmartMenza.UnitTests | [`SmartMenza.UnitTests/`](SmartMenza.UnitTests/) | 20 xUnit tests |
 
-Android, Gradle modules:
+## Android app
+
+The Android app is split into 7 Gradle modules.
 
 | Module | Contents |
 |---|---|
-| `app` | Screens (fragments with XML layouts), session, and the sync to the watch |
-| `core` | Retrofit clients and data models used by the other modules |
-| `mailauth` | Login and registration with email and password |
-| `googleauth` | Login with a Google account |
-| `navigation` | Bottom navigation, with different items for students and staff |
-| `topbar` | Top bar with logout and sync with the watch |
-| `wear` | The Wear OS app, in Compose for Wear OS |
+| [`app`](app/) | Screens (fragments with XML layouts), session, and the sync to the watch |
+| [`core`](core/) | Retrofit clients and data models used by the other modules |
+| [`mailauth`](mailauth/) | Login and registration with email and password |
+| [`googleauth`](googleauth/) | Login with a Google account |
+| [`navigation`](navigation/) | Bottom navigation, with different items for students and staff |
+| [`topbar`](topbar/) | Top bar with logout and sync with the watch |
+| [`wear`](wear/) | The Wear OS app, in Compose for Wear OS |
+
+## Wear OS sync
+
+The watch shows today's lunch and dinner, and the phone sends them over the Wearable Data Layer API.
+The sync starts when a student taps "Sinkronizacija sa satom" (sync with watch) in the phone app.
+
+| Step | Where | What happens |
+|---|---|---|
+| 1 | Phone, `MenuSyncManager` | Writes today's lunch and dinner to the data path `/menu_items`, or an empty menu if there is none |
+| 2 | Watch, `WearDataListenerService` | Receives the data and saves it with `MenuStorage`, so it stays after a restart |
+| 3 | Watch, `MenuViewModel` | Reads the saved menu every 2 seconds, so a new sync appears without reopening the app |
+
+## Tech stack
+
+| Layer | Tools |
+|---|---|
+| Database | Azure SQL, Entity Framework Core |
+| Backend | ASP.NET Core 8, JWT, Swagger |
+| Cloud | Azure App Service, Azure Blob Storage, Azure OpenAI |
+| Tests | xUnit, Moq |
+| Android | Kotlin, Retrofit, Google Sign-In |
+| Wear OS | Kotlin, Compose for Wear OS, Wearable Data Layer API |
 
 ## Run locally
 
-Backend, with the .NET 8 SDK:
+The development settings use SQL Server LocalDB and the Azurite storage emulator.
+Requires the .NET 8 SDK, SQL Server LocalDB, Azurite and Android Studio.
 
-1. Fill in `SmartMenza/appsettings.json`: a SQL Server connection string, a JWT secret key,
-   and the Azure Blob Storage and Azure OpenAI settings.
-2. Run `dotnet run --project SmartMenza --launch-profile http`. The API applies the
-   migrations, starts on `http://localhost:5166` and shows Swagger at `/swagger`.
-3. Run `dotnet test` for the unit tests.
+1. Start Azurite, which stores the dish images on `127.0.0.1:10000`.
+2. Add your own Azure OpenAI endpoint and key to `SmartMenza/appsettings.json`, for the AI checks.
+3. Start the API, which applies the migrations and shows Swagger on `http://localhost:5166/swagger`:
+   ```bash
+   dotnet run --project SmartMenza --launch-profile http
+   ```
+4. Run the unit tests:
+   ```bash
+   dotnet test
+   ```
+5. In `core/src/main/java/foi/cverglici/core/data/api/ApiConfig.kt`, set `BASE_URL` to the commented address `http://10.0.2.2:5166/`.
+6. In Android Studio, run `app` on an emulator with Android 11 (API 30) or newer.
+7. Run `wear` on a Wear OS emulator paired with the phone, then tap sync in the phone app to see today's menu on the watch.
 
-Android, in Android Studio:
+## Project structure
 
-1. In `core/src/main/java/foi/cverglici/core/data/api/ApiConfig.kt`, switch `BASE_URL` to the
-   commented address `http://10.0.2.2:5166/`. That is the host machine as seen from the
-   emulator.
-2. Run `app` on an emulator with Android 11 (API 30) or newer.
-3. For the watch, run `wear` on a Wear OS emulator paired with the phone emulator.
-
-## Documentation
-
-`docs/` holds the team's Azure DevOps wiki, in Croatian.
-
-| File | Contents |
+| Folder | Contents |
 |---|---|
-| [`Arhitektura-proizvoda-i-podsustava.md`](docs/Arhitektura-proizvoda-i-podsustava.md) | Architecture of the system and its parts |
-| [`Funkcionalnosti-aplikacije-(epics,-korisničke-priče).md`](docs/Funkcionalnosti-aplikacije-(epics,-korisni%C4%8Dke-pri%C4%8De).md) | Epics and user stories |
-| [`Plan-iteracija.md`](docs/Plan-iteracija.md) | Sprint plan |
-| [`attachments/`](docs/attachments/) | Diagrams, Figma prototype screens and setup screenshots |
+| [`docs/`](docs/) | Team wiki from Azure DevOps, in Croatian: architecture, epics and user stories, sprint plan |
+| [`docs/attachments/`](docs/attachments/) | Diagrams, Figma prototype screens and setup screenshots |
 
 ## License
 
